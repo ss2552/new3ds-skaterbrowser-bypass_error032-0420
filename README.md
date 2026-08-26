@@ -1,4 +1,6 @@
-# new3dsのskaterbrowserで起きるエラー 032-0420を回避するgm9スクリプト
+# new3dsのskaterbrowserで起きるエラー 032-0420 032-0423 を回避するgm9スクリプト
+
+
 
 * 現在はcfwが必要な方法のみ
 
