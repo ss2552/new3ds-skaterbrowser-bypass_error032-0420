@@ -4,5 +4,5 @@
 
 * 現在はcfwが必要な方法のみ
 
-- 配布先はこのサーバー
+- [ダウンロード](https://github.com/ss2552/new3ds-skaterbroeser-bypass_error032-0420/edit/main/skaterbrowser_032-0420_bypass.gm9)
 - https://discord.gg/yuumanoza-tan-guang-chang-634719150434156546
