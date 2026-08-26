@@ -1,0 +1,72 @@
+/*
+
+作者 えす
+discordサーバー https://discord.gg/yuumanoza-tan-guang-chang-634719150434156546
+作成日 8月27日
+
+*/
+
+
+
+set SAVE_PATH 1:/data/$[SYSID0]/sysdata/000200bb/00000000
+
+if not find $[SAVE_PATH] NULL
+    echo ブラウザを開いてセーブデータを生成して下さい
+    goto EXIT
+end
+
+imgumount
+if not imgmount $[SAVE_PATH] || not allow D:/partitionA.bin
+    echo アクセスまたはマウントに失敗しました
+    goto FAIL
+end
+
+fget D:/partitionA.bin@36F0:1 CURRENT_TEXT
+if chk $[CURRENT_TEXT] 2A
+    fset D:/partitionA.bin@36F0 cb30f330c630f330c930fc303300440053002000ea30f330af30c69600000000000000000000000000
+    fset D:/partitionA.bin@3F00 5900610068006f006f00210020004a004100500041004e0000000000000000000000000000000000
+    fset D:/partitionA.bin@4710 47006f006f0067006c00650000000000000000000000000000000000000000000000000000000000
+    fset D:/partitionA.bin@4F20 5900610068006f006f0021004d3063305a3000000000000000000000000000000000000000000000
+    echo 文字を戻しました
+    goto FILTER_PATCH
+end
+
+fget D:/partitionA.bin@3060:1 REGISTER
+
+if chk $[REGISTER] 01
+    if ask "初期化しますか？(3060を00に変更)"
+        fset D:/partitionA.bin@3060:1 00
+        echo 初期化しました
+    end
+elif chk $[REGISTER] 00
+    if ask "有効化しますか？(3060を01に変更)"
+        fset D:/partitionA.bin@36F0 2A007E3060301C69227D6F30BC6255306A30443067302F008765575B6F303B625B307E3059300000
+        fset D:/partitionA.bin@3F00 e65d0b4e7c007c007c004b3089302d8a9a5b92308b95443066300000300000000000000000000000
+        fset D:/partitionA.bin@4710 1c69227da830f330b830f33092300959483000000b4e55304430000000007e300000003000000000
+        fset D:/partitionA.bin@4F20 53308C3067307F4F48308B30883046306B306A308A307E305930000000005B620030593000000000
+        fset D:/partitionA.bin@3060:1 01
+        echo 有効パッチを当てました
+    end
+else
+    echo 0x3060が想定外の値です
+    fset D:/partitionA.bin@3060:1 00
+    goto FAIL
+end
+
+@FILTER_PATCH
+fget D:/partitionA.bin@3090:1 FILTER_VAL
+if chk $[FILTER_VAL] 00
+    if ask "フィルターも無効にしますか？"
+        fset D:/partitionA.bin@3090:1 01
+        echo フィルターを無効にしました
+    end
+end
+goto EXIT
+
+@FAIL
+echo エラーが発生しました。処理を中断します。
+imgumount
+chk -s a b
+
+@EXIT
+imgumount
