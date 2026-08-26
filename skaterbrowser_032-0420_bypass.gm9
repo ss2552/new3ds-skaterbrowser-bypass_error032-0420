@@ -34,12 +34,13 @@ end
 fget D:/partitionA.bin@3060:1 REGISTER
 
 if chk $[REGISTER] 01
-    if ask "初期化しますか？(3060を00に変更)"
+    if ask "初期化しますか？"
         fset D:/partitionA.bin@3060:1 00
         echo 初期化しました
+        goto EXIT
     end
 elif chk $[REGISTER] 00
-    if ask "有効化しますか？(3060を01に変更)"
+    if ask "有効化しますか？"
         fset D:/partitionA.bin@36F0 2A007E3060301C69227D6F30BC6255306A30443067302F008765575B6F303B625B307E3059300000
         fset D:/partitionA.bin@3F00 e65d0b4e7c007c007c004b3089302d8a9a5b92308b95443066300000300000000000000000000000
         fset D:/partitionA.bin@4710 1c69227da830f330b830f33092300959483000000b4e55304430000000007e300000003000000000
