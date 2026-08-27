@@ -1,73 +1,83 @@
-/*
-
-作者 えす
-discordサーバー https://discord.gg/yuumanoza-tan-guang-chang-634719150434156546
-作成日 8月27日
-
-*/
-
+#
+# 作者: えす
+# Discord: https://discord.gg/yuumanoza-tan-guang-chang-634719150434156546
+# 作成日: 8月27日
+#
 
 
 set SAVE_PATH 1:/data/$[SYSID0]/sysdata/000200bb/00000000
+set SAVE_DATA D:/partitionA.bin
+# set T_BIN 0x3000
+
+set DISABLE 00
+set ENABLE 01
 
 if not find $[SAVE_PATH] NULL
-    echo ブラウザを開いてセーブデータを生成して下さい
+    echo "ブラウザを開いてセーブデータを生成してください。"
     goto EXIT
 end
 
 imgumount
-if not imgmount $[SAVE_PATH] || not allow D:/partitionA.bin
-    echo アクセスまたはマウントに失敗しました
-    goto FAIL
+if not imgmount $[SAVE_PATH]
+    echo "セーブデータのマウントに失敗しました。"
+    goto EXIT
 end
 
-fget D:/partitionA.bin@36F0:1 CURRENT_TEXT
-if chk $[CURRENT_TEXT] 2A
-    fset D:/partitionA.bin@36F0 cb30f330c630f330c930fc303300440053002000ea30f330af30c69600000000000000000000000000
-    fset D:/partitionA.bin@3F00 5900610068006f006f00210020004a004100500041004e0000000000000000000000000000000000
-    fset D:/partitionA.bin@4710 47006f006f0067006c00650000000000000000000000000000000000000000000000000000000000
-    fset D:/partitionA.bin@4F20 5900610068006f006f0021004d3063305a3000000000000000000000000000000000000000000000
-    echo 文字を戻しました
+if not allow $[SAVE_DATA]
+    echo "アクセスが拒否されました。"
+    goto EXIT
+end
+
+fget $[SAVE_DATA]@36F0:1 IS_GUIDE
+if chk $[IS_GUIDE] 2A
+    fset $[SAVE_DATA]@36F0 CB30F330C630F330C930FC303300440053002000EA30F330AF30C69600000000000000000000000000
+    fset $[SAVE_DATA]@3F00 5900610068006F006F00210020004A004100500041004E0000000000000000000000000000000000
+    fset $[SAVE_DATA]@4710 47006F006F0067006C00650000000000000000000000000000000000000000000000000000000000
+    fset $[SAVE_DATA]@4F20 5900610068006F006F0021004D3063305A3000000000000000000000000000000000000000000000
+    echo "説明文を元の状態に戻しました。"
     goto FILTER_PATCH
 end
 
-fget D:/partitionA.bin@3060:1 REGISTER
+fget $[SAVE_DATA]@3060:1 REGISTER
 
-if chk $[REGISTER] 01
-    if ask "初期化しますか？"
-        fset D:/partitionA.bin@3060:1 00
-        echo 初期化しました
-        goto EXIT
+if chk $[REGISTER] $[ENABLE]
+    if ask "初期化を実行しますか？"
+        fset $[SAVE_DATA]@3060:1 $[DISABLE]
+        echo "初期化が完了しました。\n再度有効化を行うことで取り消せます。"
     end
-elif chk $[REGISTER] 00
-    if ask "有効化しますか？"
-        fset D:/partitionA.bin@36F0 2A007E3060301C69227D6F30BC6255306A30443067302F008765575B6F303B625B307E3059300000
-        fset D:/partitionA.bin@3F00 e65d0b4e7c007c007c004b3089302d8a9a5b92308b95443066300000300000000000000000000000
-        fset D:/partitionA.bin@4710 1c69227da830f330b830f33092300959483000000b4e55304430000000007e300000003000000000
-        fset D:/partitionA.bin@4F20 53308C3067307F4F48308B30883046306B306A308A307E305930000000005B620030593000000000
-        fset D:/partitionA.bin@3060:1 01
-        echo 有効パッチを当てました
+
+elif chk $[REGISTER] $[DISABLE]
+    if ask "有効化を実行しますか？"
+
+        fset $[SAVE_DATA]@3060:1 $[ENABLE]
+
+        fget $[SAVE_DATA]@3068:1 BOOT_COUNT
+        if chk $[BOOT_COUNT] $[DISABLE]
+            fset $[SAVE_DATA]@36F0 2A007E3060301C69227D6F30BC6255306A30443067302F008765575B6F303B625B307E3059300000
+            fset $[SAVE_DATA]@3F00 E65D0B4E7C007C007C004B3089302D8A9A5B92308B95443066300000300000000000000000000000
+            fset $[SAVE_DATA]@4710 1C69227DA830F330B830F33092300959483000000B4E55304430000000007E300000003000000000
+            fset $[SAVE_DATA]@4F20 53308C3067307F4F48308B30883046306B306A308A307E305930000000005B620030593000000000
+            echo "説明文の書き込みと有効化パッチの適用が完了しました。"
+            echo "Skaterブラウザの設定を開き、検索エンジンを1回以上切り替えてください。"
+            echo "もう一度本処理を実行すると説明文が元に戻ります。"
+        else
+            echo "初期化処理を取り消しました。"
+        end
     end
 else
-    echo 0x3060が想定外の値です
-    fset D:/partitionA.bin@3060:1 00
-    goto FAIL
+    echo "エラー: アドレス 0x3060 の値が想定外です ($[REGISTER])"
+    fset $[SAVE_DATA]@3060:1 $[DISABLE]
+    goto EXIT
 end
 
 @FILTER_PATCH
-fget D:/partitionA.bin@3090:1 FILTER_VAL
-if chk $[FILTER_VAL] 00
-    if ask "フィルターも無効にしますか？"
-        fset D:/partitionA.bin@3090:1 01
-        echo フィルターを無効にしました
+fget $[SAVE_DATA]@3090:1 FILTER_VAL
+if chk $[FILTER_VAL] $[DISABLE]
+    if ask "フィルター機能を無効化しますか？"
+        fset $[SAVE_DATA]@3090:1 $[ENABLE]
+        echo "フィルター機能を無効化しました。"
     end
 end
-goto EXIT
-
-@FAIL
-echo エラーが発生しました。処理を中断します。
-imgumount
-chk -s a b
 
 @EXIT
 imgumount
