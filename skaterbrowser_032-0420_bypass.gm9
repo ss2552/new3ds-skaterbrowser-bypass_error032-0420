@@ -4,7 +4,6 @@
 # 作成日: 8月27日
 #
 
-
 set SAVE_PATH 1:/data/$[SYSID0]/sysdata/000200bb/00000000
 set SAVE_DATA D:/partitionA.bin
 # set T_BIN 0x3000
